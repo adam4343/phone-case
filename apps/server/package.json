@@ -15,13 +15,14 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "zod": "^3.25.16",
-    "express": "^5.1.0",
-    "cors": "^2.8.5",
-    "drizzle-orm": "^0.44.2",
     "@libsql/client": "^0.15.9",
-    "better-auth": "^1.2.10"
+    "better-auth": "^1.2.10",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.44.2",
+    "express": "^5.1.0",
+    "uploadthing": "^7.7.3",
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "tsc-alias": "^1.8.11",

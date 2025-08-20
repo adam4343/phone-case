@@ -35,7 +35,6 @@ export default function Navbar() {
                   });
                 }}
                   className={buttonVariants({
-                    size: "sm",
                     variant: "ghost",
                   })}
                 >
@@ -44,7 +43,6 @@ export default function Navbar() {
                 <Link
                   href="/configure/upload"
                   className={buttonVariants({
-                    size: "sm",
                     className: "flex items-center gap-1",
                   })}
                 >
@@ -57,7 +55,6 @@ export default function Navbar() {
                 <Link
                   href="/register"
                   className={buttonVariants({
-                    size: "sm",
                     variant: "ghost",
                   })}
                 >
@@ -66,7 +63,6 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   className={buttonVariants({
-                    size: "sm",
                     variant: "ghost",
                   })}
                 >
@@ -76,7 +72,6 @@ export default function Navbar() {
                 <Link
                   href="/configure/upload"
                   className={buttonVariants({
-                    size: "sm",
                     className: "flex items-center gap-1 group",
                   })}
                 >

@@ -2,7 +2,7 @@ import { Icons } from "@/components/custom/icons";
 import Phone from "@/components/custom/phone";
 import { Reviews } from "@/components/custom/reviews";
 import Container from "@/components/shared/container";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/lib/utils";
 import { ArrowRight, Check, Star } from "lucide-react";
 import Link from "next/link";
 

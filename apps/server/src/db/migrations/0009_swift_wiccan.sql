@@ -1,0 +1,1 @@
+ALTER TABLE `color` ADD `name` text NOT NULL;

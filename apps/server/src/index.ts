@@ -6,6 +6,9 @@ import { toNodeHandler } from "better-auth/node";
 import { createRouteHandler } from "uploadthing/express";
 import { uploadRouter } from "./uploadthing";
 import { phoneCaseRouter } from "./routers/phonecase.routes";
+import { colorsRouter } from "./routers/colors.routes";
+import { modelRouter } from "./routers/model.routes";
+import { materialRouter } from "./routers/material.routes";
 
 const app = express();
 
@@ -35,8 +38,12 @@ app.use(
 );
 
 app.use("/api/phone-case", phoneCaseRouter);
+app.use("/api/colors", colorsRouter);
+app.use("/api/models", modelRouter);
+app.use("/api/material", materialRouter);
 
 const port = process.env.PORT || 3001;
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

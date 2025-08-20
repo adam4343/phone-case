@@ -1,6 +1,6 @@
 
 
-import SignInForm from "@/components/sign-in-form";
+import SignInForm from "@/app/login/_components/sign-in-form";
 
 
 

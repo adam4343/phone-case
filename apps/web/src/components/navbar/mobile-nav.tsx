@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import Link from "next/link";
-import { Button, buttonVariants } from "../ui/button";
+import { Button } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +18,7 @@ import {
 import type { TUser } from "@/lib/types/user";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { buttonVariants } from "@/lib/utils";
 
 type Props = {
   user?: TUser;

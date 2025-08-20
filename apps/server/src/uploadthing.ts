@@ -3,6 +3,7 @@ import z from "zod";
 import { db } from "./db";
 import { phoneCase } from "./db/schema/phone-case.schema";
 import { eq } from "drizzle-orm";
+import sharp from "sharp";
 
 const f = createUploadthing();
 
@@ -13,45 +14,46 @@ export const uploadRouter = {
       maxFileCount: 1,
     },
   })
-    .input(z.object({ configId: z.string() })) 
+    .input(z.object({ configId: z.string() }))
     .middleware(async ({ input }) => {
-      
-      if (!input.configId) {
-        throw new Error("configId is required");
-      }
-      
+      if (!input.configId) throw new Error("configId is required");
       return { configId: input.configId };
     })
     .onUploadError(async ({ error }) => {
-      console.error("💥 Upload failed in UploadThing backend:");
-      console.error("Error:", error);
+      console.error("💥 Upload failed in UploadThing backend:", error);
     })
     .onUploadComplete(async ({ metadata, file }) => {
-    
-      
       const { configId } = metadata;
+
+      const existingCase = await db
+        .select()
+        .from(phoneCase)
+        .where(eq(phoneCase.id, configId))
+        .get();
+
+      const response = await fetch(file.ufsUrl);
+      const buffer = await response.arrayBuffer();
+      const imageData = await sharp(buffer).metadata();
+      const { width, height } = imageData;
+
       
-      if (!configId) {
-        throw new Error("configId is missing in upload metadata");
-      }
 
-      try { 
-        const [updatedCase] = await db
-          .update(phoneCase)
-          .set({ image: file.url })
-          .where(eq(phoneCase.id, configId))
-          .returning();
+      const updateData = !existingCase?.image
+        ? {
+            image: file.ufsUrl,
+            width: width || 500,
+            height: height || 500,
+            totalPrice: 0
+          }
+        : { croppedImage: file.ufsUrl };
 
-        if (!updatedCase) {
-          throw new Error(`No phone case found with configId: ${configId}`);
-        }
+      
+      await db
+        .update(phoneCase)
+        .set(updateData)
+        .where(eq(phoneCase.id, configId));
 
-        const result = { configId };
-        
-        return result;
-      } catch (dbError) {
-        throw new Error("Failed to update phone case with image");
-      }
+      return { configId };
     }),
 } satisfies FileRouter;
 

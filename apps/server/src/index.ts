@@ -1,6 +1,6 @@
 import "dotenv/config";
 import cors from "cors";
-import express, { Router } from "express";
+import express from "express";
 import { auth } from "./lib/auth";
 import { toNodeHandler } from "better-auth/node";
 import { createRouteHandler } from "uploadthing/express";
@@ -9,6 +9,7 @@ import { phoneCaseRouter } from "./routers/phonecase.routes";
 import { colorsRouter } from "./routers/colors.routes";
 import { modelRouter } from "./routers/model.routes";
 import { materialRouter } from "./routers/material.routes";
+import { orderRouter } from "./routers/orders.routes";
 
 const app = express();
 
@@ -23,6 +24,8 @@ app.use(
 );
 
 app.all("/api/auth/*splat", toNodeHandler(auth));
+app.use("/api/order/webhook", orderRouter);
+
 app.use(express.json());
 
 app.use(
@@ -41,6 +44,7 @@ app.use("/api/phone-case", phoneCaseRouter);
 app.use("/api/colors", colorsRouter);
 app.use("/api/models", modelRouter);
 app.use("/api/material", materialRouter);
+app.use("/api/order", orderRouter);
 
 const port = process.env.PORT || 3001;
 

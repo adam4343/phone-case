@@ -11,7 +11,6 @@ export const phoneCase = sqliteTable("phone_case", {
   width: integer("width").notNull(),
   height: integer("height").notNull(),
   croppedImage: text("croppedImage").notNull(),
-  totalPrice: integer("totalPrice").notNull(),
 
   userId: text("user_id").references(() => user.id),
   modelId: text("model_id").references(() => model.id),

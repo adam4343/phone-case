@@ -1,0 +1,1 @@
+ALTER TABLE `phone_case` DROP COLUMN `totalPrice`;

@@ -38,29 +38,15 @@ interface UpdatePhoneCaseParams {
   colorId: string;
   modelId: string;
   materialId: string;
-  totalPrice: number;
 }
 
 type Config = z.infer<typeof configSchema>;
-
-function base64ToBlob(base64: string, mimeType: string) {
-    const byteCharacters = atob(base64);
-
-    const byteNumbers = new Array(byteCharacters.length);
-
-    for(let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-
-    const byteArray = new Uint8Array(byteNumbers);
-}
 
 export async function updatePhoneCase({
   caseId,
   colorId,
   modelId,
   materialId,
-  totalPrice
 }: UpdatePhoneCaseParams) {
   try {
     const res = await axios.put(
@@ -69,7 +55,6 @@ export async function updatePhoneCase({
         colorId,
         modelId,
         materialId,
-        totalPrice
       }
     );
 
@@ -79,6 +64,7 @@ export async function updatePhoneCase({
     throw error;
   }
 }
+
 export default function DesignConfigurator({
   configId,
   imageUrl,
@@ -98,6 +84,7 @@ export default function DesignConfigurator({
       toast.error("Something went wrong");
     }
   });
+
   const form = useForm<Config>({
     resolver: zodResolver(configSchema),
   });
@@ -139,18 +126,15 @@ export default function DesignConfigurator({
       const topOffset = caseTop - containerTop;
   
       const actualX = resizedPositon.x - leftOffset;
-  
       const actualY = resizedPositon.y - topOffset;
   
       const canvas = document.createElement("canvas");
-  
-      (canvas.width = width), (canvas.height = height);
+      canvas.width = width;
+      canvas.height = height;
       const ctx = canvas.getContext("2d");
   
       const userImage = new window.Image();
-  
       userImage.crossOrigin = "anonymous";
-  
       userImage.src = imageUrl;
   
       await new Promise((resolve) => (userImage.onload = resolve));
@@ -174,7 +158,6 @@ export default function DesignConfigurator({
     } catch(e) {
       toast.error("Something went wrong, try again")
     }
-
   }
 
   function base64ToBlob(base64: string, mimeType: string) {
@@ -191,12 +174,14 @@ export default function DesignConfigurator({
 
   return (
     <FormProvider {...form}>
-      <div className="relative mt-10 mb-20 pb-20 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+      {/* Changed: Removed mt-10 mb-20 pb-20, added min-h-screen and flex-grow */}
+      <div className="flex-grow grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 p-4 min-h-[calc(100vh-200px)]">
+        {/* Changed: Removed fixed height, added min-h-[600px] and flex-grow */}
         <div
           ref={containerRef}
-          className="relative w-full h-[30rem] sm:h-[35rem] lg:h-[37.5rem] overflow-hidden flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 sm:p-8 lg:p-12 text-center"
+          className="relative w-full min-h-[600px] flex-grow overflow-hidden flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 sm:p-8 lg:p-12 text-center"
         >
-          <div className="relative w-48 sm:w-60 pointer-events-none aspect-[896/1831]">
+          <div className="relative w-48 sm:w-60 lg:w-72 xl:w-80 pointer-events-none aspect-[896/1831]">
             <AspectRatio
               ref={phoneRef}
               ratio={896 / 1831}
@@ -252,8 +237,9 @@ export default function DesignConfigurator({
           </Rnd>
         </div>
 
-        <div className="w-full lg:h-[37.5rem] relative overflow-y-auto  rounded-lg border border-zinc-200">
-          <div className="px-4 sm:px-6 lg:px-6 py-6 flex flex-col gap-6 ">
+        {/* Changed: Removed fixed height, added min-h-[600px] and flex flex-col */}
+        <div className="w-full min-h-[600px] flex flex-col relative rounded-lg border border-zinc-200">
+          <div className="px-4 sm:px-6 lg:px-6 py-6 flex flex-col gap-6 flex-grow overflow-y-auto">
             <h2 className="tracking-tight font-bold text-xl sm:text-2xl">
               Customize your case
             </h2>
@@ -261,7 +247,7 @@ export default function DesignConfigurator({
             <ConfigForm />
           </div>
 
-          <div className="sticky bottom-0 bg-white p-6 border-t  border-zinc-200  mt-auto">
+          <div className="bg-white p-6 border-t border-zinc-200 mt-auto">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="font-medium text-gray-900">Total Price:</span>
@@ -280,7 +266,6 @@ export default function DesignConfigurator({
                     colorId: form.getValues("color.id"),
                     materialId: form.getValues("material"),
                     modelId: form.getValues("model"),
-                    totalPrice: totalPrice
                   });
                 }}
               >

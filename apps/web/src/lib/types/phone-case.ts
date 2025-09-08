@@ -29,7 +29,6 @@ export interface PhoneCaseModel {
   export interface PhoneCase {
     id: string;
     price: number;
-    totalPrice: number;
     image: string;
     width: number;
     height: number;

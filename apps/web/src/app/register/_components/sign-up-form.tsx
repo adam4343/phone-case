@@ -3,12 +3,13 @@ import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import z from "zod/v4";
-import Loader from "./loader";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Loader from "@/components/loader";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -29,6 +30,14 @@ export default function SignUpForm() {
         },
         {
           onSuccess: () => {
+            const configId = localStorage.getItem("configId");
+
+            if(configId) {
+              router.push(`/configure/preview?id=${configId}`);
+              toast.success("Sign up successful");
+              return;
+            }
+
             router.push("/dashboard");
             toast.success("Sign up successful");
           },

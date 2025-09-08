@@ -27,6 +27,13 @@ export default function SignInForm() {
         },
         {
           onSuccess: () => {
+            const configId = localStorage.getItem("configId");
+
+            if(configId) {
+              router.push(`/configure/preview?id=${configId}`);
+              toast.success("Sign in successful");
+              return;
+            }
             router.push("/dashboard")
             toast.success("Sign in successful");
           },

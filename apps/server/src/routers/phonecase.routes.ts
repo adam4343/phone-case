@@ -4,11 +4,26 @@ import { Router } from "express";
 import { eq } from 'drizzle-orm';
 import { getErrorMessage } from "@/lib/helpers/getErrorMessage";
 import { color } from "@/db/schema/colors.schema";
+import z from "zod";
 
 export const phoneCaseRouter = Router();
 
+const createPhoneCaseSchema = z.object({
+  configId: z.string().min(1, "configId is required"),
+});
+
+const phoneCaseIdSchema = z.object({
+  id: z.string().min(1, "id is required")
+})
+
 phoneCaseRouter.post("/", async (req, res) => {
   try {
+    const result = createPhoneCaseSchema.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({ error: getErrorMessage(result.error.issues)});
+    }
+
     const { configId } = req.body;
 
     if (!configId) {
@@ -23,7 +38,6 @@ phoneCaseRouter.post("/", async (req, res) => {
         croppedImage: "TEMP",
         height: 0,
         width: 0,
-        totalPrice: 0,
         modelId: null,
         materialId: null,
         colorId: null,
@@ -40,7 +54,14 @@ phoneCaseRouter.post("/", async (req, res) => {
 
 phoneCaseRouter.get("/:id", async (req, res) => {
   try {
-    const { id } = req.params;
+    const response = phoneCaseIdSchema.safeParse(req.params);
+
+    if(!response.success) {
+      return res.status(400).json({error: getErrorMessage(response.error.issues)})
+    }
+
+    const { id } = response.data;
+
 
     if (!id) {
       return res.status(400).json({ error: "ID parameter is required" });
@@ -78,8 +99,15 @@ phoneCaseRouter.get("/:id", async (req, res) => {
 
 phoneCaseRouter.put("/:id", async (req, res) => {
   try {
-    const { id } = req.params;
-    const { materialId, colorId, modelId, totalPrice } = req.body;
+    const result = phoneCaseIdSchema.safeParse(req.params);
+
+    if(!result.success) {
+      return res.status(400).json({error: getErrorMessage(result.error.issues)})
+    }
+
+    const {id} = result.data
+
+    const { materialId, colorId, modelId } = req.body;
 
     if (!materialId || !colorId || !modelId) {
       return res.status(400).json({ error: "materialId, colorId, and modelId are required." });
@@ -99,13 +127,15 @@ phoneCaseRouter.put("/:id", async (req, res) => {
     const [modelExists] = await db.select().from(model).where(eq(model.id, modelId)).limit(1);
     const [colorExists] = await db.select().from(color).where(eq(color.id, colorId)).limit(1);
 
+    const price = materialExists.price + modelExists.price;
+
     if (!materialExists || !modelExists || !colorExists) {
       return res.status(400).json({ error: "Invalid materialId, modelId, or colorId." });
     }
 
     const [updatedCase] = await db
       .update(phoneCase)
-      .set({ materialId, colorId, modelId, totalPrice })
+      .set({ materialId, colorId, modelId, price })
       .where(eq(phoneCase.id, id))
       .returning();
 

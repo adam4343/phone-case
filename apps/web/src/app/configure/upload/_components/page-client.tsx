@@ -72,72 +72,103 @@ export default function PageClient() {
   };
 
   return (
-    <div
-      className={cn(
-        "relative h-full flex-1 my-16 w-full rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:rounded-2xl flex justify-center flex-col items-center",
-        {
-          "ring-blue-900/25 bg-blue-900/10": isDragOver,
-        }
-      )}
-    >
-      <div className="relative flex flex-1 flex-col items-center justify-center w-full">
-        <Dropzone
-          accept={{
-            "image/png": [".png"],
-            "image/jpeg": [".jpg", ".jpeg"],
-            "image/jpg": [".jpg"],
-          }}
-          onDropAccepted={onDropAccepted}
-          onDropRejected={onDropRejected}
-          onDragEnter={() => setIsDragOver(true)}
-          onDragLeave={() => setIsDragOver(false)}
-        >
-          {({ getRootProps, getInputProps }) => (
-            <div
-              className="h-full w-full flex-1 flex flex-col items-center justify-center"
-              {...getRootProps()}
-            >
-              <input {...getInputProps()} />
-              {isDragOver ? (
-                <MousePointerSquareDashed className="h-6 w-6 text-zinc-500 mb-2" />
-              ) : isUploading || isPending ? (
-                <Loader2 className="animate-spin h-6 w-6 text-zinc-500 mb-2" />
-              ) : (
-                <Image className="w-5 h-5 text-neutral-900" />
-              )}
-              <div className="flex flex-col justify-center mb-2 text-sm text-zinc-700">
-                {isUploading ? (
-                  <div className="flex flex-col items-center">
-                    <div className="text-center">
-                      Uploading...
-                      <Progress
-                        value={uploadProgress}
-                        className="mt-2 w-40 h-2 bg-gray-300"
-                      />
-                    </div>
-                  </div>
-                ) : isPending ? (
-                  <div className="flex flex-col items-center">
-                    <p>Redirecting, please wait...</p>
-                  </div>
-                ) : isDragOver ? (
-                  <p>
-                    <span className="font-semibold">Drop file</span> to upload
-                  </p>
-                ) : (
-                  <p>
-                    <span className="font-semibold">Click to upload</span> or
-                    drag and drop
-                  </p>
-                )}
-              </div>
-
-              {isPending ? null : (
-                <p className="text-xs text-zinc-500">PNG, JPEG, JPG</p>
-              )}
-            </div>
+    <div className="mt-10 mb-20 pb-20">
+      <div className=" max-w-6xl mx-auto">
+        <div
+          className={cn(
+            "relative h-[500px] w-full rounded-xl bg-gray-50 border-2 border-dashed border-gray-300 flex justify-center flex-col items-center transition-colors duration-200 hover:bg-gray-100/50",
+            {
+              "border-blue-500 bg-blue-50": isDragOver,
+            }
           )}
-        </Dropzone>
+        >
+          <div className="relative flex flex-1 flex-col items-center justify-center w-full">
+            <Dropzone
+              accept={{
+                "image/png": [".png"],
+                "image/jpeg": [".jpg", ".jpeg"],
+                "image/jpg": [".jpg"],
+              }}
+              onDropAccepted={onDropAccepted}
+              onDropRejected={onDropRejected}
+              onDragEnter={() => setIsDragOver(true)}
+              onDragLeave={() => setIsDragOver(false)}
+            >
+              {({ getRootProps, getInputProps }) => (
+                <div
+                  className="h-full w-full flex-1 flex flex-col items-center justify-center cursor-pointer group"
+                  {...getRootProps()}
+                >
+                  <input {...getInputProps()} />
+                  
+                  {/* Icon */}
+                  <div className="mb-6">
+                    {isDragOver ? (
+                      <MousePointerSquareDashed className="h-10 w-10 text-primary" />
+                    ) : isUploading || isPending ? (
+                      <Loader2 className="animate-spin h-10 w-10 text-primary" />
+                    ) : (
+                      <Image className="w-10 h-10 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                    )}
+                  </div>
+
+                  {/* Main text */}
+                  <div className="flex flex-col justify-center items-center mb-4 text-center">
+                    {isUploading ? (
+                      <div className="flex flex-col items-center">
+                        <p className="text-lg font-medium text-gray-900 mb-2">
+                          Uploading...
+                        </p>
+                        <Progress
+                          value={uploadProgress}
+                          className="w-48 h-3 bg-gray-200"
+                        />
+                        <p className="text-sm text-gray-500 mt-2">
+                          {uploadProgress}% complete
+                        </p>
+                      </div>
+                    ) : isPending ? (
+                      <div className="flex flex-col items-center">
+                        <p className="text-lg font-medium text-gray-900">
+                          Redirecting, please wait...
+                        </p>
+                      </div>
+                    ) : isDragOver ? (
+                      <div>
+                        <p className="text-lg font-medium text-blue-600">
+                          Drop your file here
+                        </p>
+                        <p className="text-sm text-blue-500 mt-1">
+                          Release to upload
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-lg font-medium text-gray-900">
+                          <span className="text-primary transition-colors">
+                            Click to upload
+                          </span>{" "}
+                          or drag and drop
+                        </p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Choose an image for your phone case
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* File format info */}
+                  {!isPending && (
+                    <div className="flex items-center space-x-1 text-xs text-gray-400">
+                      <span>Supported formats:</span>
+                      <span className="font-medium">PNG, JPEG, JPG</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Dropzone>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -174,104 +174,113 @@ export default function DesignConfigurator({
 
   return (
     <FormProvider {...form}>
-      {/* Changed: Removed mt-10 mb-20 pb-20, added min-h-screen and flex-grow */}
-      <div className="flex-grow grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 p-4 min-h-[calc(100vh-200px)]">
-        {/* Changed: Removed fixed height, added min-h-[600px] and flex-grow */}
-        <div
-          ref={containerRef}
-          className="relative w-full min-h-[600px] flex-grow overflow-hidden flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 sm:p-8 lg:p-12 text-center"
-        >
-          <div className="relative w-48 sm:w-60 lg:w-72 xl:w-80 pointer-events-none aspect-[896/1831]">
-            <AspectRatio
-              ref={phoneRef}
-              ratio={896 / 1831}
-              className="pointer-events-none relative z-50 w-full"
-            >
-              <Image
-                fill
-                src={"/phone-template.png"}
-                alt="phone image"
-                className="pointer-events-none z-50 select-none"
-              />
-            </AspectRatio>
-            <div className="absolute z-40 inset-0 left-[3px] top-px right-[3px] bottom-px rounded-[32px] shadow-[0_0_0_99999px_rgba(229,231,235,0.6)]" />
-            <div
-              className="absolute inset-0 left-[3px] top-px right-[3px] bottom-px rounded-[32px]"
-              style={{ backgroundColor: color?.hex || "#000000" }}
-            />
-          </div>
-          <Rnd
-            default={{
-              x: 150,
-              y: 205,
-              width: imageDimensions.width / 4,
-              height: imageDimensions.height / 4,
-            }}
-            onResizeStop={(_, __, ref, ___, { x, y }) => {
-              setResizedDimension({
-                height: parseInt(ref.style.height.slice(0, -2)),
-                width: parseInt(ref.style.width.slice(0, -2)),
-              });
-              setResizedPosition({ x, y });
-            }}
-            onDragStop={(_, data) => {
-              const { x, y } = data;
-              setResizedPosition({ x, y });
-            }}
-            resizeHandleComponent={{
-              bottomLeft: <ResizeHandle />,
-              bottomRight: <ResizeHandle />,
-              topRight: <ResizeHandle />,
-              topLeft: <ResizeHandle />,
-            }}
-            className="absolute z-20"
+      <div className="mt-10 mb-20 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 ">
+          <div
+            ref={containerRef}
+            className="relative w-full h-[600px] lg:h-[700px] overflow-hidden flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 sm:p-8 lg:p-12 text-center bg-gray-50"
           >
-            <div className="relative w-full h-full">
-              <Image
-                src={imageUrl}
-                fill
-                alt="your image"
-                className="pointer-events-none"
+            <div className="relative w-48 sm:w-60 lg:w-72 xl:w-80 pointer-events-none aspect-[896/1831]">
+              <AspectRatio
+                ref={phoneRef}
+                ratio={896 / 1831}
+                className="pointer-events-none relative z-50 w-full"
+              >
+                <Image
+                  fill
+                  src={"/phone-template.png"}
+                  alt="phone image"
+                  className="pointer-events-none z-50 select-none"
+                />
+              </AspectRatio>
+              <div className="absolute z-40 inset-0 left-[3px] top-px right-[3px] bottom-px rounded-[32px] shadow-[0_0_0_99999px_rgba(229,231,235,0.6)]" />
+              <div
+                className="absolute inset-0 left-[3px] top-px right-[3px] bottom-px rounded-[32px]"
+                style={{ backgroundColor: color?.hex || "#000000" }}
               />
             </div>
-          </Rnd>
-        </div>
-
-        {/* Changed: Removed fixed height, added min-h-[600px] and flex flex-col */}
-        <div className="w-full min-h-[600px] flex flex-col relative rounded-lg border border-zinc-200">
-          <div className="px-4 sm:px-6 lg:px-6 py-6 flex flex-col gap-6 flex-grow overflow-y-auto">
-            <h2 className="tracking-tight font-bold text-xl sm:text-2xl">
-              Customize your case
-            </h2>
-            <div className="h-[1px] w-full bg-zinc-200" />
-            <ConfigForm />
+            <Rnd
+              default={{
+                x: 150,
+                y: 205,
+                width: imageDimensions.width / 4,
+                height: imageDimensions.height / 4,
+              }}
+              onResizeStop={(_, __, ref, ___, { x, y }) => {
+                setResizedDimension({
+                  height: parseInt(ref.style.height.slice(0, -2)),
+                  width: parseInt(ref.style.width.slice(0, -2)),
+                });
+                setResizedPosition({ x, y });
+              }}
+              onDragStop={(_, data) => {
+                const { x, y } = data;
+                setResizedPosition({ x, y });
+              }}
+              resizeHandleComponent={{
+                bottomLeft: <ResizeHandle />,
+                bottomRight: <ResizeHandle />,
+                topLeft: <ResizeHandle />,
+                topRight: <ResizeHandle />,
+              }}
+              className="absolute z-20"
+            >
+              <div className="relative w-full h-full">
+                <Image
+                  src={imageUrl}
+                  fill
+                  alt="your image"
+                  className="pointer-events-none"
+                />
+              </div>
+            </Rnd>
           </div>
 
-          <div className="bg-white p-6 border-t border-zinc-200 mt-auto">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-gray-900">Total Price:</span>
-                <span className="text-lg font-bold text-gray-900">
-                  ${totalPrice}
-                </span>
+          <div className="w-full h-[600px] lg:h-[700px] flex flex-col bg-white rounded-lg border border-zinc-200 shadow-sm">
+            {/* Form content */}
+            <div className="px-6 py-6 flex-1 overflow-y-auto">
+              <div className="space-y-6">
+                <div>
+                  <h2 className="tracking-tight font-bold text-2xl text-gray-900">
+                    Customize your case
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Configure your phone case exactly how you want it
+                  </p>
+                </div>
+                
+                <div className="h-px w-full bg-zinc-200" />
+                
+                <ConfigForm />
               </div>
-              <Button
-                isPending={mutation.isPending}
-                type="button"
-                className="w-full group flex items-center justify-center gap-2 transition-all duration-300"
-                size="lg"
-                onClick={() => {
-                  mutation.mutate({
-                    caseId: configId,
-                    colorId: form.getValues("color.id"),
-                    materialId: form.getValues("material"),
-                    modelId: form.getValues("model"),
-                  });
-                }}
-              >
-                Continue
-                <ArrowRight className="h-5 w-5 transition-transform duration-300 transform group-hover:translate-x-1" />
-              </Button>
+            </div>
+
+            <div className="bg-white p-6 border-t border-zinc-200 mt-auto rounded-b-lg">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-900">Total Price:</span>
+                  <span className="text-xl font-bold text-gray-900">
+                    ${totalPrice}
+                  </span>
+                </div>
+                <Button
+                  isPending={mutation.isPending}
+                  type="button"
+                  className="w-full group flex items-center justify-center gap-2 transition-all duration-300"
+                  size="lg"
+                  onClick={() => {
+                    mutation.mutate({
+                      caseId: configId,
+                      colorId: form.getValues("color.id"),
+                      materialId: form.getValues("material"),
+                      modelId: form.getValues("model"),
+                    });
+                  }}
+                >
+                  Continue
+                  <ArrowRight className="h-5 w-5 transition-transform duration-300 transform group-hover:translate-x-1" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>

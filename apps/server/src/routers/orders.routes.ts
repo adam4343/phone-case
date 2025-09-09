@@ -14,7 +14,8 @@ import authenticateUser from "@/middlewares/auth.middleware";
 import { getUser } from "@/lib/helpers/getUser";
 import "dotenv/config";
 import { stripe } from "@/lib/stripe";
-import express from "express"; // ← Add this import
+import express from "express";
+import Stripe from "stripe"; 
 
 const configIdSchema = z.object({
   configId: z.string().min(1, "Configuration id is required"),
@@ -22,7 +23,6 @@ const configIdSchema = z.object({
 
 export const orderRouter = Router();
 
-// Your existing checkout route stays the same
 orderRouter.post("/checkout", authenticateUser, async (req, res) => {
   try {
     const user = getUser(req); 
@@ -59,7 +59,7 @@ orderRouter.post("/checkout", authenticateUser, async (req, res) => {
     });
 
     const stripeSession = await stripe.checkout.sessions.create({
-      success_url: `${process.env.CORS_ORIGIN}/thank-you?session_id={CHECKOUT_SESSION_ID}`, // ← Changed this
+      success_url: `${process.env.CORS_ORIGIN}/thank-you?session_id={CHECKOUT_SESSION_ID}`, 
       cancel_url: `${process.env.CORS_ORIGIN}/configure/preview?id=${phoneCaseRecord.id}`,
       payment_method_types: ["card"],
       mode: "payment",
@@ -78,107 +78,126 @@ orderRouter.post("/checkout", authenticateUser, async (req, res) => {
   }
 });
 
-// 🎯 NEW: Webhook route - ADD THIS
-// orderRouter.post(
-//   "/webhook", 
-//   express.raw({ type: 'application/json' }), // ← Important: raw body needed for Stripe signature verification
-//   async (req, res) => {
-//     const sig = req.headers['stripe-signature'];
-//     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET; // ← You'll need to add this to your .env
+orderRouter.post(
+  "/webhook", 
+  express.raw({ type: 'application/json' }), 
+  async (req, res) => {
+    console.log("🔥 WEBHOOK CALLED!"); 
+    const sig = req.headers['stripe-signature'];
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET; 
 
-//     let event;
+    if (!sig) {
+      console.log("❌ No signature header");
+      return res.status(400).send("No signature header");
+    }
 
-//     try {
-//       // Verify this request actually came from Stripe
-//       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-//       console.log("✅ Webhook signature verified");
-//     } catch (err) {
-//       console.log(`❌ Webhook signature verification failed:`, err.message);
-//       return res.status(400).send(`Webhook Error: ${err.message}`);
-//     }
+    if (!endpointSecret) {
+      console.log("❌ No webhook secret configured");
+      return res.status(500).send("Webhook secret not configured");
+    }
 
-//     // Handle the checkout.session.completed event
-//     if (event.type === 'checkout.session.completed') {
-//       const session = event.data.object;
-//       console.log("💳 Payment succeeded for session:", session.id);
+    let event: Stripe.Event;
 
-//       try {
-//         // Get the metadata we stored when creating the checkout session
-//         const { userId, phoneCaseId } = session.metadata;
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      console.log("✅ Webhook signature verified");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.log(`❌ Webhook signature verification failed:`, errorMessage);
+      return res.status(400).send(`Webhook Error: ${errorMessage}`);
+    }
 
-//         console.log("Creating order for user:", userId, "phoneCase:", phoneCaseId);
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      console.log("💳 Payment succeeded for session:", session.id);
 
-//         // Get phone case details
-//         const [phoneCaseRecord] = await db
-//           .select()
-//           .from(phoneCase)
-//           .where(eq(phoneCase.id, phoneCaseId));
+      try {
+        if (!session.metadata) {
+          console.error("❌ No metadata found in session");
+          return res.status(400).json({ error: "No metadata found" });
+        }
 
-//         if (!phoneCaseRecord) {
-//           console.error("❌ Phone case not found:", phoneCaseId);
-//           return res.status(400).json({ error: "Phone case not found" });
-//         }
+        const userId = session.metadata.userId;
+        const phoneCaseId = session.metadata.phoneCaseId;
 
-//         // Create the order and addresses in a transaction
-//         await db.transaction(async (tx) => {
-//           // Create shipping address from Stripe checkout data
-//           const [createdShippingAddress] = await tx
-//             .insert(shippingAddress)
-//             .values({
-//               name: session.shipping_details?.name || session.customer_details?.name || "Unknown",
-//               street: session.shipping_details?.address?.line1 || session.customer_details?.address?.line1 || "Unknown",
-//               city: session.shipping_details?.address?.city || session.customer_details?.address?.city || "Unknown",
-//               postalCode: session.shipping_details?.address?.postal_code || session.customer_details?.address?.postal_code || "Unknown",
-//               country: session.shipping_details?.address?.country || session.customer_details?.address?.country || "Unknown",
-//               phoneNumber: session.customer_details?.phone || "",
-//             })
-//             .returning();
+        if (!userId || !phoneCaseId) {
+          console.error("❌ Missing userId or phoneCaseId in metadata");
+          return res.status(400).json({ error: "Missing required metadata" });
+        }
 
-//           // Create billing address from Stripe checkout data  
-//           const [createdBillingAddress] = await tx
-//             .insert(billingAddress)
-//             .values({
-//               name: session.customer_details?.name || "Unknown",
-//               street: session.customer_details?.address?.line1 || "Unknown",
-//               city: session.customer_details?.address?.city || "Unknown", 
-//               postalCode: session.customer_details?.address?.postal_code || "Unknown",
-//               country: session.customer_details?.address?.country || "Unknown",
-//               phoneNumber: session.customer_details?.phone || "",
-//             })
-//             .returning();
+        console.log("Creating order for user:", userId, "phoneCase:", phoneCaseId);
 
-//           // Create the order - this is the most important part!
-//           const [createdOrder] = await tx
-//             .insert(order)
-//             .values({
-//               userId: userId,
-//               phoneCaseId: phoneCaseRecord.id,
-//               shippingId: createdShippingAddress.id,
-//               billingId: createdBillingAddress.id,
-//               price: phoneCaseRecord.price,
-//               isPaid: true, // ← We know it's paid because webhook fired!
-//               stripeSessionId: session.id, // ← Store this so we can find the order later
-//             })
-//             .returning();
+        const [phoneCaseRecord] = await db
+          .select()
+          .from(phoneCase)
+          .where(eq(phoneCase.id, phoneCaseId));
 
-//           console.log("✅ Order created successfully:", createdOrder.id);
-//         });
+        if (!phoneCaseRecord) {
+          console.error("❌ Phone case not found:", phoneCaseId);
+          return res.status(400).json({ error: "Phone case not found" });
+        }
 
-//       } catch (error) {
-//         console.error("❌ Error creating order from webhook:", error);
-//         // Don't return error response - Stripe will retry the webhook
-//         // Just log it and return success so Stripe doesn't keep retrying
-//       }
-//     } else {
-//       console.log("Unhandled webhook event type:", event.type);
-//     }
+        const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+          expand: ['customer_details']
+        });
 
-//     // Always return success to Stripe
-//     res.json({ received: true });
-//   }
-// );
+        await db.transaction(async (tx) => {
+          const customerName = fullSession.customer_details?.name || "Unknown";
+          const customerAddress = fullSession.customer_details?.address;
+          const customerPhone = fullSession.customer_details?.phone || "";
 
-// Update your existing get route to use session ID instead of configId
+          const [createdShippingAddress] = await tx
+            .insert(shippingAddress)
+            .values({
+              name: customerName,
+              street: customerAddress?.line1 || "Unknown",
+              city: customerAddress?.city || "Unknown",
+              postalCode: customerAddress?.postal_code || "Unknown",
+              country: customerAddress?.country || "Unknown",
+              phoneNumber: customerPhone,
+            })
+            .returning();
+
+          const [createdBillingAddress] = await tx
+            .insert(billingAddress)
+            .values({
+              name: customerName,
+              street: customerAddress?.line1 || "Unknown",
+              city: customerAddress?.city || "Unknown", 
+              postalCode: customerAddress?.postal_code || "Unknown",
+              country: customerAddress?.country || "Unknown",
+              phoneNumber: customerPhone,
+            })
+            .returning();
+
+          const [createdOrder] = await tx
+            .insert(order)
+            .values({
+              userId: userId,
+              phoneCaseId: phoneCaseRecord.id,
+              shippingId: createdShippingAddress.id,
+              billingId: createdBillingAddress.id,
+              price: phoneCaseRecord.price,
+              isPaid: true, 
+              stripeSessionId: session.id, 
+            })
+            .returning();
+
+          console.log("✅ Order created successfully:", createdOrder.id);
+        });
+
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error("❌ Error creating order from webhook:", errorMessage);
+      }
+    } else {
+      console.log("Unhandled webhook event type:", event.type);
+    }
+
+    res.json({ received: true });
+  }
+);
+
 orderRouter.get("/by-session/:sessionId", async (req, res) => {
   try {
     const { sessionId } = req.params;
@@ -194,11 +213,12 @@ orderRouter.get("/by-session/:sessionId", async (req, res) => {
         .json({ error: "Order not found" });
     }
 
+    console.log(existingOrder)
+
     return res.json({ data: existingOrder });
-  } catch (e) {
-    console.error("Order fetch error:", e);
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+    console.error("Order fetch error:", errorMessage);
     res.status(500).json({ error: getErrorMessage(e) });
   }
 });
-
-// Remove your old POST "/" route since we don't need it anymore

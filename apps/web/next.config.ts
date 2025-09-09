@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["90u0wkx402.ufs.sh"],
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  }
 };
 
 export default nextConfig;

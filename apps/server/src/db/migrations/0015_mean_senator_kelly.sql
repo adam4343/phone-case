@@ -1,1 +1,0 @@
-ALTER TABLE `phone_case` ADD `totalPrice` integer NOT NULL;

@@ -1,1 +1,0 @@
-ALTER TABLE `material` ADD `description` text NOT NULL;

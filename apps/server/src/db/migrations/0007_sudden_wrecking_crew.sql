@@ -1,1 +1,0 @@
-ALTER TABLE `phone_case` ADD `height` integer NOT NULL;

@@ -1,4 +1,4 @@
-import generateRandomId from "@/lib/helpers";
+import generateRandomId from "../../lib/helpers";
 import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { timestamps } from "./auth.schema";
 

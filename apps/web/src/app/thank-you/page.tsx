@@ -1,15 +1,13 @@
-
 import ThankYouClient from "./_components/thank-you-client";
 
 interface ThankYouPageProps {
-  searchParams: {
+  searchParams: Promise<{
     caseId?: string;
-  };
+  }>;
 }
 
-export default function ThankYouPage({ searchParams }: ThankYouPageProps) {
-  const { caseId } = searchParams;
-
+export default async function ThankYouPage({ searchParams }: ThankYouPageProps) {
+  const { caseId } = await searchParams;
+  
   return <ThankYouClient caseId={caseId ?? ""} />;
 }
-

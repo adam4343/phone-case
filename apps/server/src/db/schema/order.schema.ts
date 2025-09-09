@@ -1,7 +1,7 @@
-import generateRandomId from "@/lib/helpers";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { timestamps, user } from "./auth.schema";
 import { phoneCase } from "./phone-case.schema";
+import generateRandomId from "../../lib/helpers";
 
 export const order = sqliteTable("order", {
   id: text()

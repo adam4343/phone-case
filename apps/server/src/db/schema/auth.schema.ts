@@ -1,5 +1,5 @@
-import generateRandomId from "@/lib/helpers";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import generateRandomId from "../../lib/helpers";
 
 export const timestamps = {
   createdAt: text("createdAt").$defaultFn(() => new Date().toISOString()).notNull(),

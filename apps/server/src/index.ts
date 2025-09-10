@@ -12,6 +12,7 @@ import { materialRouter } from "./routers/material.routes";
 import { orderRouter } from "./routers/orders.routes";
 
 const app = express();
+const isDev = process.env.NODE_ENV !== "production";
 
 app.use(
   cors({
@@ -19,11 +20,12 @@ app.use(
     methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
     credentials: true,
     preflightContinue: false,
-    optionsSuccessStatus: 204
+    optionsSuccessStatus: 204,
   })
 );
 
-app.all("/api/auth/*splat", toNodeHandler(auth));
+app.all("/api/auth/*", toNodeHandler(auth));
+
 app.use("/api/order/webhook", orderRouter);
 
 app.use(express.json());
@@ -33,11 +35,11 @@ app.use(
   createRouteHandler({
     router: uploadRouter,
     config: {
-      token: process.env.UPLOADTHING_TOKEN,
-      callbackUrl: `http://localhost:3001/api/uploadthing`,
-      isDev: true, 
+      token: process.env.UPLOADTHING_TOKEN!,
+      callbackUrl: process.env.UPLOADTHING_URL || `${process.env.BETTER_AUTH_URL}/api/uploadthing`,
+      isDev,
     },
-  }),
+  })
 );
 
 app.use("/api/phone-case", phoneCaseRouter);
@@ -49,5 +51,7 @@ app.use("/api/order", orderRouter);
 const port = process.env.PORT || 3001;
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(
+    `🚀 Server running in ${isDev ? "development" : "production"} mode on port ${port}`
+  );
 });

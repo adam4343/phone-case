@@ -37,9 +37,8 @@ const formatPrice = (price: number) => {
   }).format(price);
 };
 
-export default function ThankYouClient() {
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session_id');
+export default function ThankYouClient({sessionId}: {sessionId: string}) {
+
 
 
   const query = useQuery({

@@ -24,7 +24,7 @@ app.use(
   })
 );
 
-app.all("/api/auth/*", toNodeHandler(auth));
+app.use("/api/auth", toNodeHandler(auth));
 
 app.use("/api/order/webhook", orderRouter);
 

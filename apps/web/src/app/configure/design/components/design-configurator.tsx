@@ -50,7 +50,7 @@ export async function updatePhoneCase({
 }: UpdatePhoneCaseParams) {
   try {
     const res = await axios.put(
-      `http://localhost:3001/api/phone-case/${caseId}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/phone-case/${caseId}`,
       {
         colorId,
         modelId,

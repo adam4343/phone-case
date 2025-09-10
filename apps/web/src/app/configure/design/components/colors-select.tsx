@@ -15,7 +15,7 @@ interface Color {
 }
 
 async function getColors(): Promise<Color[]> {
-  const res = await axios.get("http://localhost:3001/api/colors");
+  const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/colors`);
   return res.data.data;
 }
 

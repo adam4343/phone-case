@@ -38,7 +38,7 @@ const MaterialSelectSkeleton = () => (
 );
 
 async function getMaterial() {
-  const res = await axios.get("http://localhost:3001/api/material");
+  const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/material`);
   return res.data.data as Material[];
 }
 

@@ -32,7 +32,7 @@ const ModelSelectSkeleton = () => (
 );
 
 async function getModels() {
-  const res = await axios.get("http://localhost:3001/api/models");
+  const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/models`);
   return res.data.data as Model[];
 }
 

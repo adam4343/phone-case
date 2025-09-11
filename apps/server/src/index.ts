@@ -25,7 +25,10 @@ app.use(
 );
 
 app.all("/api/auth/*splat", toNodeHandler(auth));
-app.use("/api/order/webhook", orderRouter);
+
+app.use("/api/order/webhook", express.raw({ type: 'application/json' }), orderRouter);
+
+
 app.use(express.json());
 
 app.use(
@@ -47,7 +50,6 @@ app.use("/api/material", materialRouter);
 app.use("/api/order", orderRouter);
 
 const port = process.env.PORT || 3001;
-
 app.listen(port, () => {
   console.log(
     `🚀 Server running in ${isDev ? "development" : "production"} mode on port ${port}`

@@ -24,7 +24,7 @@ app.use(
   })
 );
 
-app.use("/api/auth", toNodeHandler(auth));
+app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use("/api/order/webhook", orderRouter);
 app.use(express.json());
 

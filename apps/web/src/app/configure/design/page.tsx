@@ -12,6 +12,7 @@ interface PageProps {
 export async function getPhoneCase(id: string) {
     try {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/phone-case/${id}`);
+       
       
       if (!res.data.data) {
         return notFound();
@@ -34,6 +35,8 @@ export async function getPhoneCase(id: string) {
 }
 
 export default async function Page({searchParams}: PageProps) {
+
+
     const params = await searchParams;
 
     const {id} = params

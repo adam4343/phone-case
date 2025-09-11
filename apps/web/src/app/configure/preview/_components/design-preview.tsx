@@ -36,6 +36,8 @@ async function createOrderSession( { configId }: {configId: string}) {
 }
 
 export default function DesignConfigurator({ phoneCase }: Props) {
+ 
+
   const [showConfetti, setShowConfetti] = React.useState<boolean>(false);
   const [openModal, setOpenModal] = React.useState<boolean>(false);
   const router = useRouter();

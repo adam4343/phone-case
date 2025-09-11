@@ -18,6 +18,16 @@ export const auth = betterAuth({
   },
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL,
+  advanced: {
+    cookiePrefix: "phone-case",
+    crossSubDomainCookies: {
+      enabled: true,
+    },
+    defaultCookieAttributes: {
+      secure: true,
+      sameSite: "none",    
+    },
+  },
 });
 
 

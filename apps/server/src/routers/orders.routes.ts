@@ -27,6 +27,7 @@ export const orderRouter = Router();
 orderRouter.post("/webhook", 
   express.raw({ type: 'application/json' }), 
   async (req, res) => {
+    
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'POST');
     res.header('Access-Control-Allow-Headers', 'Content-Type, stripe-signature');
@@ -54,7 +55,7 @@ orderRouter.post("/webhook",
       let event;
 
       try {
-        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+        event = await stripe.webhooks.constructEventAsync(req.body, sig, endpointSecret);
         console.log("✅ Webhook signature verified");
         console.log("📦 Event type received:", event.type);
         console.log("🆔 Event ID:", event.id);
@@ -298,3 +299,10 @@ orderRouter.get("/by-session/:sessionId", async (req, res) => {
   }
 });
 
+orderRouter.get("/webhook-test", (req, res) => {
+  res.json({ 
+    message: "Webhook endpoint is reachable",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV 
+  });
+});

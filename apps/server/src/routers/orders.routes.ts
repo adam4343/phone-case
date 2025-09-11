@@ -23,16 +23,10 @@ const configIdSchema = z.object({
 
 export const orderRouter = Router();
 
-// Make sure this webhook route is BEFORE any other middleware that might interfere
-// and BEFORE the authenticateUser middleware on other routes
-
-// IMPORTANT: The webhook route MUST be defined BEFORE any express.json() middleware
-// that might interfere with raw body parsing
 
 orderRouter.post("/webhook", 
   express.raw({ type: 'application/json' }), 
   async (req, res) => {
-    // Add CORS headers for webhook
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'POST');
     res.header('Access-Control-Allow-Headers', 'Content-Type, stripe-signature');
@@ -70,7 +64,6 @@ orderRouter.post("/webhook",
         return res.status(400).json({ error: `Webhook Error: ${errorMessage}` });
       }
 
-      // Handle the checkout.session.completed event
       if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         console.log("💳 Processing payment success for session:", session.id);
@@ -93,7 +86,6 @@ orderRouter.post("/webhook",
 
           console.log("👤 Creating order for user:", userId, "phoneCase:", phoneCaseId);
 
-          // Check if phone case exists
           const [phoneCaseRecord] = await db
             .select()
             .from(phoneCase)
@@ -106,14 +98,12 @@ orderRouter.post("/webhook",
 
           console.log("📱 Phone case found:", phoneCaseRecord.id, "Price:", phoneCaseRecord.price);
 
-          // Retrieve full session with customer details
           const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
             expand: ['customer_details']
           });
 
           console.log("👤 Customer details:", JSON.stringify(fullSession.customer_details, null, 2));
 
-          // Check if order already exists to prevent duplicates
           const [existingOrder] = await db
             .select()
             .from(order)
@@ -124,7 +114,6 @@ orderRouter.post("/webhook",
             return res.status(200).json({ received: true, message: "Order already processed" });
           }
 
-          // Create the order in a transaction
           console.log("🔄 Starting database transaction");
           
           await db.transaction(async (tx) => {
@@ -169,7 +158,7 @@ orderRouter.post("/webhook",
                 phoneCaseId: phoneCaseRecord.id,
                 shippingId: createdShippingAddress.id,
                 billingId: createdBillingAddress.id,
-                price: phoneCaseRecord.price,
+                price: Math.round(phoneCaseRecord.price * 100), 
                 isPaid: true, 
                 stripeSessionId: session.id, 
               })
@@ -186,7 +175,6 @@ orderRouter.post("/webhook",
           console.error("❌ Error creating order from webhook:", errorMessage);
           console.error("🔍 Full error stack:", error instanceof Error ? error.stack : error);
           
-          // Still return 200 to acknowledge webhook receipt
           return res.status(200).json({ 
             received: true, 
             error: errorMessage,
@@ -197,7 +185,6 @@ orderRouter.post("/webhook",
         console.log("❓ Unhandled webhook event type:", event.type);
       }
 
-      // Always return 200 to acknowledge receipt
       return res.status(200).json({ received: true, event_type: event.type });
 
     } catch (error) {
@@ -205,7 +192,6 @@ orderRouter.post("/webhook",
       console.error("💥 Fatal webhook error:", errorMessage);
       console.error("🔍 Full error stack:", error instanceof Error ? error.stack : error);
       
-      // Return 200 even on error to prevent Stripe retries for non-recoverable errors
       return res.status(200).json({ 
         received: true, 
         error: errorMessage 
@@ -249,7 +235,6 @@ orderRouter.post("/checkout", authenticateUser, async (req, res) => {
       },
     });
 
-    // Ensure we have a valid price ID
     const priceId = product.default_price;
     if (!priceId) {
       throw new Error("Failed to create product price");
@@ -292,7 +277,6 @@ orderRouter.get("/by-session/:sessionId", async (req, res) => {
     if (!existingOrder) {
       console.log("❌ Order not found for session:", sessionId);
       
-      // Check if there are any orders in the database for debugging
       const allOrders = await db.select().from(order).limit(5);
       console.log("📊 Recent orders in database:", allOrders.length);
       if (allOrders.length > 0) {
@@ -313,3 +297,4 @@ orderRouter.get("/by-session/:sessionId", async (req, res) => {
     res.status(500).json({ error: getErrorMessage(e) });
   }
 });
+

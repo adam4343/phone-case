@@ -46,7 +46,7 @@ This is one of my **most challenging and comprehensive projects** — a fully fu
 
 | Tool / Library | Purpose |
 |---|---|
-| **Next.js ** | App Router, SSR, Routing |
+| **Next.js** | App Router, SSR, Routing |
 | **TypeScript** | Type-safe codebase |
 | **Tailwind CSS** | Styling + design system |
 | **Express.js** | Backend server & API |

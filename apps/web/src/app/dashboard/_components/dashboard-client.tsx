@@ -116,11 +116,81 @@ const DashboardSkeleton = () => (
   </div>
 );
 
+
+
+
 export default function DashboardClient() {
   const { data, isLoading, error } = useQuery<DashboardResponse>({
-    queryKey: ["orders"],
+    queryKey: ['orders'],
     queryFn: fetchOrders,
+    refetchInterval: 30000, 
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 400) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
+
+  if (error && (error as any)?.response?.status === 400) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Orders Dashboard</h1>
+            <p className="text-gray-600">0 total orders</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Orders</p>
+                    <p className="text-2xl font-bold text-gray-900">0</p>
+                  </div>
+                  <Package className="w-8 h-8 text-primary" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Paid Orders</p>
+                    <p className="text-2xl font-bold text-green-600">0</p>
+                  </div>
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                    <p className="text-2xl font-bold text-gray-900">$0.00</p>
+                  </div>
+                  <DollarSign className="w-8 h-8 text-gray-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Empty State */}
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No orders yet</h3>
+              <p className="text-gray-600">Orders will appear here once customers make purchases</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -129,9 +199,7 @@ export default function DashboardClient() {
           <Card className="border-red-200 bg-red-50">
             <CardContent className="p-6 text-center">
               <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-red-900 mb-2">
-                Failed to load orders
-              </h3>
+              <h3 className="text-lg font-semibold text-red-900 mb-2">Failed to load orders</h3>
               <p className="text-red-700">Please try refreshing the page</p>
             </CardContent>
           </Card>
@@ -144,11 +212,9 @@ export default function DashboardClient() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Orders Dashboard
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Orders Dashboard</h1>
           <p className="text-gray-600">
-            {isLoading ? "Loading..." : `${data?.total || 0} total orders`}
+            {isLoading ? 'Loading...' : `${data?.total || 0} total orders`}
           </p>
         </div>
 
@@ -158,45 +224,37 @@ export default function DashboardClient() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Total Orders
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {data.total}
-                    </p>
+                    <p className="text-sm font-medium text-gray-600">Total Orders</p>
+                    <p className="text-2xl font-bold text-gray-900">{data.total}</p>
                   </div>
                   <Package className="w-8 h-8 text-blue-600" />
                 </div>
               </CardContent>
             </Card>
-
+            
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Paid Orders
-                    </p>
+                    <p className="text-sm font-medium text-gray-600">Paid Orders</p>
                     <p className="text-2xl font-bold text-green-600">
-                      {data.data.filter((order) => order.isPaid).length}
+                      {data.data.filter(order => order.isPaid).length}
                     </p>
                   </div>
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
               </CardContent>
             </Card>
-
+            
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Total Revenue
-                    </p>
+                    <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCurrency(
                         data.data
-                          .filter((order) => order.isPaid)
+                          .filter(order => order.isPaid)
                           .reduce((sum, order) => sum + order.price, 0)
                       )}
                     </p>
@@ -215,17 +273,13 @@ export default function DashboardClient() {
             {data?.data.map((order) => (
               <OrderCard key={order.id} order={order} />
             ))}
-
+            
             {data?.data.length === 0 && (
               <Card>
                 <CardContent className="p-12 text-center">
                   <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No orders yet
-                  </h3>
-                  <p className="text-gray-600">
-                    Orders will appear here once customers make purchases
-                  </p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No orders yet</h3>
+                  <p className="text-gray-600">Orders will appear here once customers make purchases</p>
                 </CardContent>
               </Card>
             )}

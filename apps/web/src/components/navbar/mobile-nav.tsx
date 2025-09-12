@@ -49,7 +49,7 @@ export default function MobileNavigation({ user }: Props) {
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent align="end" className="w-56 z-[999]">
           {user ? (
             <>
               <DropdownMenuItem asChild>

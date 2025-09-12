@@ -299,6 +299,7 @@ orderRouter.get("/by-session/:sessionId", async (req, res) => {
   }
 });
 
+
 orderRouter.get("/dashboard", async (req, res) => {
   try {
     const orders = await db
@@ -350,6 +351,12 @@ orderRouter.get("/dashboard", async (req, res) => {
       .leftJoin(shippingAddress, eq(order.shippingId, shippingAddress.id))
       .leftJoin(billingAddress, eq(order.billingId, billingAddress.id))
       .orderBy(desc(order.createdAt));
+
+    if (orders.length === 0) {
+      return res.status(400).json({ 
+        error: getErrorMessage("No orders found") 
+      });
+    }
 
     const transformedOrders = orders.map(orderData => ({
       id: orderData.id,

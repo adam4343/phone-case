@@ -72,7 +72,7 @@ export const formatDate = (date: string) => {
 
 const fetchOrders = async (): Promise<DashboardResponse> => {
   const response = await axios.get(
-    `${process.env.NEXT_PUBLIC_API_URL}/orders/dashboard`
+    `${process.env.NEXT_PUBLIC_API_URL}/api/order/dashboard`
   );
   return response.data;
 };

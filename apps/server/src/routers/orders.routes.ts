@@ -299,9 +299,10 @@ orderRouter.get("/by-session/:sessionId", async (req, res) => {
   }
 });
 
-
-orderRouter.get("/dashboard", async (req, res) => {
+orderRouter.get("/dashboard", authenticateUser, async (req, res) => {
   try {
+    const user = getUser(req); 
+    
     const orders = await db
       .select({
         id: order.id,
@@ -350,11 +351,14 @@ orderRouter.get("/dashboard", async (req, res) => {
       .leftJoin(material, eq(phoneCase.materialId, material.id))
       .leftJoin(shippingAddress, eq(order.shippingId, shippingAddress.id))
       .leftJoin(billingAddress, eq(order.billingId, billingAddress.id))
+      .where(eq(order.userId, user.id)) 
       .orderBy(desc(order.createdAt));
 
     if (orders.length === 0) {
-      return res.status(400).json({ 
-        error: getErrorMessage("No orders found") 
+      return res.status(200).json({ 
+        data: [],
+        total: 0,
+        message: "No orders found"
       });
     }
 
@@ -376,12 +380,13 @@ orderRouter.get("/dashboard", async (req, res) => {
       billingAddress: orderData.billingAddress,
     }));
 
-    return res.json({ 
+    return res.json({
       data: transformedOrders,
-      total: transformedOrders.length 
+      total: transformedOrders.length
     });
     
   } catch (e) {
+    console.error('Dashboard error:', e);
     const errorMessage = e instanceof Error ? e.message : 'Unknown error';
     res.status(500).json({ error: getErrorMessage(e) });
   }

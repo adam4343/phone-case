@@ -2,6 +2,7 @@
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import DashboardClient from "./_components/dashboard-client";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -19,9 +20,6 @@ export default function Dashboard() {
   }
 
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Welcome {session?.user.name}</p>
-    </div>
+   <DashboardClient />
   );
 }

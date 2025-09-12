@@ -1,4 +1,5 @@
 'use client'
+
 import {
   ArrowRight,
   Menu,
@@ -26,6 +27,7 @@ type Props = {
 
 export default function MobileNavigation({ user }: Props) {
   const router = useRouter();
+
   return (
     <div className="md:hidden flex items-center space-x-2">
       <Link
@@ -39,6 +41,7 @@ export default function MobileNavigation({ user }: Props) {
         <ArrowRight className="ml-1 h-5 w-5 transition-transform duration-300 group-hover:translate-x-0.5" />
       </Link>
 
+      {/* Menu Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="ghost" className="p-2">
@@ -46,25 +49,31 @@ export default function MobileNavigation({ user }: Props) {
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-56 z-200">
+        <DropdownMenuContent align="end" className="w-56">
           {user ? (
             <>
               <DropdownMenuItem asChild>
-                <Button
-                  onClick={() => {
-                    authClient.signOut({
-                      fetchOptions: {
-                        onSuccess: () => {
-                          router.push("/");
-                        },
-                      },
-                    });
-                  }}
+                <Link
+                  href="/dashboard"
                   className="flex items-center gap-2 cursor-pointer"
                 >
-                  <LogOut className="h-4 w-4" />
-                  Sign out
-                </Button>
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => {
+                  authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: () => router.push("/"),
+                    },
+                  });
+                }}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
               </DropdownMenuItem>
             </>
           ) : (

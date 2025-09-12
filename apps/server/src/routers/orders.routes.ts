@@ -1,9 +1,8 @@
-import { user } from "./../db/schema/auth.schema";
 import { db } from "@/db";
 import { getErrorMessage } from "@/lib/helpers/getErrorMessage";
 import { Router } from "express";
 import z from "zod";
-import { eq } from "drizzle-orm";
+import { desc,eq } from "drizzle-orm";
 import { material, model, phoneCase } from "@/db/schema/phone-case.schema";
 import {
   billingAddress,
@@ -15,7 +14,6 @@ import { getUser } from "@/lib/helpers/getUser";
 import "dotenv/config";
 import { stripe } from "@/lib/stripe";
 import express from "express";
-import Stripe from "stripe"; 
 import { color } from "@/db/schema/colors.schema";
 
 const configIdSchema = z.object({
@@ -214,7 +212,6 @@ orderRouter.post("/checkout", authenticateUser, async (req, res) => {
   }
 });
 
-
 orderRouter.get("/by-session/:sessionId", async (req, res) => {
   try {
     const { sessionId } = req.params;
@@ -295,6 +292,87 @@ orderRouter.get("/by-session/:sessionId", async (req, res) => {
     };
 
     return res.json({ data: responseData });
+    
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+    res.status(500).json({ error: getErrorMessage(e) });
+  }
+});
+
+orderRouter.get("/dashboard", async (req, res) => {
+  try {
+    const orders = await db
+      .select({
+        id: order.id,
+        price: order.price,
+        isPaid: order.isPaid,
+        status: order.status,
+        stripeSessionId: order.stripeSessionId,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        phoneCase: {
+          id: phoneCase.id,
+          image: phoneCase.image,
+          croppedImage: phoneCase.croppedImage,
+        },
+        color: {
+          hex: color.hex,
+          name: color.name,
+        },
+        model: {
+          name: model.name,
+        },
+        material: {
+          name: material.name,
+        },
+        shippingAddress: {
+          name: shippingAddress.name,
+          street: shippingAddress.street,
+          city: shippingAddress.city,
+          postalCode: shippingAddress.postalCode,
+          country: shippingAddress.country,
+          phoneNumber: shippingAddress.phoneNumber,
+        },
+        billingAddress: {
+          name: billingAddress.name,
+          street: billingAddress.street,
+          city: billingAddress.city,
+          postalCode: billingAddress.postalCode,
+          country: billingAddress.country,
+          phoneNumber: billingAddress.phoneNumber,
+        },
+      })
+      .from(order)
+      .leftJoin(phoneCase, eq(order.phoneCaseId, phoneCase.id))
+      .leftJoin(color, eq(phoneCase.colorId, color.id))
+      .leftJoin(model, eq(phoneCase.modelId, model.id))
+      .leftJoin(material, eq(phoneCase.materialId, material.id))
+      .leftJoin(shippingAddress, eq(order.shippingId, shippingAddress.id))
+      .leftJoin(billingAddress, eq(order.billingId, billingAddress.id))
+      .orderBy(desc(order.createdAt));
+
+    const transformedOrders = orders.map(orderData => ({
+      id: orderData.id,
+      price: orderData.price,
+      isPaid: orderData.isPaid,
+      status: orderData.status,
+      stripeSessionId: orderData.stripeSessionId,
+      createdAt: orderData.createdAt,
+      updatedAt: orderData.updatedAt,
+      phoneCase: {
+        ...orderData.phoneCase,
+        color: orderData.color,
+        model: orderData.model,
+        material: orderData.material,
+      },
+      shippingAddress: orderData.shippingAddress,
+      billingAddress: orderData.billingAddress,
+    }));
+
+    return res.json({ 
+      data: transformedOrders,
+      total: transformedOrders.length 
+    });
     
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : 'Unknown error';

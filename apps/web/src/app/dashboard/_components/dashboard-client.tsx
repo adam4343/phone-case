@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { authClient } from "@/lib/auth-client";
 import axios from "axios";
 import {
   Card,
@@ -10,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, CheckCircle, XCircle, Clock, DollarSign } from "lucide-react";
+import { Package, CheckCircle, XCircle, DollarSign } from "lucide-react";
 import OrderCard from "./order-card";
 
 export interface Order {
@@ -72,7 +73,10 @@ export const formatDate = (date: string) => {
 
 const fetchOrders = async (): Promise<DashboardResponse> => {
   const response = await axios.get(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/order/dashboard`
+    `${process.env.NEXT_PUBLIC_API_URL}/api/order/dashboard`,
+    {
+      withCredentials: true, // Ensure cookies are sent
+    }
   );
   return response.data;
 };
@@ -116,21 +120,51 @@ const DashboardSkeleton = () => (
   </div>
 );
 
-
-
-
 export default function DashboardClient() {
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
+
   const { data, isLoading, error } = useQuery<DashboardResponse>({
     queryKey: ['orders'],
     queryFn: fetchOrders,
+    enabled: !sessionLoading && !!session?.user, 
     refetchInterval: 30000, 
     retry: (failureCount, error: any) => {
-      if (error?.response?.status === 400) {
+      if (error?.response?.status === 400 || error?.response?.status === 401) {
         return false;
       }
       return failureCount < 3;
     },
   });
+
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Orders Dashboard</h1>
+            <p className="text-gray-600">Loading session...</p>
+          </div>
+          <DashboardSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (error && (error as any)?.response?.status === 401) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-6 text-center">
+              <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-red-900 mb-2">Authentication Required</h3>
+              <p className="text-red-700">Please log in to view your orders</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (error && (error as any)?.response?.status === 400) {
     return (
@@ -179,7 +213,6 @@ export default function DashboardClient() {
             </Card>
           </div>
 
-          {/* Empty State */}
           <Card>
             <CardContent className="p-12 text-center">
               <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -200,7 +233,9 @@ export default function DashboardClient() {
             <CardContent className="p-6 text-center">
               <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-red-900 mb-2">Failed to load orders</h3>
-              <p className="text-red-700">Please try refreshing the page</p>
+              <p className="text-red-700">
+                {(error as any)?.response?.data?.error || 'Please try refreshing the page'}
+              </p>
             </CardContent>
           </Card>
         </div>

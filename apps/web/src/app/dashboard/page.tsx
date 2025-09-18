@@ -8,18 +8,19 @@ export default function Dashboard() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
-
   useEffect(() => {
-    if (!session && !isPending) {
+    if (!isPending && !session) {
       router.push("/login");
     }
-  }, [session, isPending]);
+  }, [session, isPending, router]);
 
   if (isPending) {
     return <div>Loading...</div>;
   }
 
-  return (
-   <DashboardClient />
-  );
+  if (!session) {
+    return <div>Redirecting to login...</div>;
+  }
+
+  return <DashboardClient />;
 }
